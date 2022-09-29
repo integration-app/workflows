@@ -1,11 +1,6 @@
 name: Deploy Application to Prod
 
 on:
-  workflow_dispatch:
-    inputs:
-      application:
-        description: "Application to deploy (i.e. pipedrive-connector)"
-        required: true
   workflow_call:
     inputs:
       application:
@@ -23,7 +18,9 @@ jobs:
         working-directory: ./scripts
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          repository: integration-app/workflows
       - name: Use Node.js 14.x
         uses: actions/setup-node@v1
         with:
@@ -52,5 +49,4 @@ jobs:
       - name: ArgoCD refresh
         run: |
           argocd login argocd.production.intapp.dev --grpc-web --username ${{ secrets.ARGOCD_USER }} --password ${{ secrets.ARGOCD_PASSWORD }}
-
           argocd app get ${{ inputs.application }} --refresh --grpc-web && argocd app wait ${{ inputs.application }}
