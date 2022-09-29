@@ -1,0 +1,56 @@
+name: Deploy Application to Prod
+
+on:
+  workflow_dispatch:
+    inputs:
+      application:
+        description: "Application to deploy (i.e. pipedrive-connector)"
+        required: true
+  workflow_call:
+    inputs:
+      application:
+        required: true
+        type: string
+
+jobs:
+  push-tested-images:
+    name: Push image to ECR and update tags in `helm`
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./scripts
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+      - name: Install NPM
+        run: npm install
+      - name: Run push-tested-images
+        run: npm run push-tested-images -- ${{ inputs.application }}
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+  sync-cluster:
+    needs:
+      - push-tested-images
+    name: Sync Cluster
+    runs-on: ubuntu-latest
+    container:
+      image: public.ecr.aws/boreddevops/argocd-cli:latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - name: ArgoCD refresh
+        run: |
+          argocd login argocd.production.intapp.dev --grpc-web --username ${{ secrets.ARGOCD_USER }} --password ${{ secrets.ARGOCD_PASSWORD }}
+
+          argocd app get ${{ inputs.application }} --refresh --grpc-web && argocd app wait ${{ inputs.application }}

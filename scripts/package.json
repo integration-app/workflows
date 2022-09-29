@@ -1,0 +1,12 @@
+{
+  "name": "scripts",
+  "type": "module",
+  "scripts": {
+    "push-tested-images": "node ./push-tested-images"
+  },
+  "dependencies": {
+    "@aws-sdk/client-ecr": "^3.165.0",
+    "js-yaml": "^4.1.0",
+    "octokit": "^2.0.7"
+  }
+}
