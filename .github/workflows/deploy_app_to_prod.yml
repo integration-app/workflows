@@ -36,10 +36,10 @@ jobs:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
   sync-cluster:
+    name: Sync Cluster
     needs:
       - push-tested-images
-    name: Sync Cluster
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, ARM64]
     container:
       image: public.ecr.aws/boreddevops/argocd-cli:latest
     permissions:
