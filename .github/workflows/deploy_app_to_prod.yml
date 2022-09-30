@@ -39,7 +39,7 @@ jobs:
     name: Sync Cluster
     needs:
       - push-tested-images
-    runs-on: [self-hosted, linux, ARM64]
+    runs-on: [self-hosted, linux]
     container:
       image: public.ecr.aws/boreddevops/argocd-cli:latest
     permissions:
